@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>東暦標準時時計 (East Calendar Standard Time)</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+
+:root {
+  --bg-dark: #0b0f19;
+  --panel-bg: rgba(22, 30, 46, 0.7);
+  --accent-cyan: #00f2ff;
+  --accent-gold: #ffb703;
+  --accent-red: #ff3366;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(circle at 50% 20%, rgba(0, 242, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 51, 102, 0.05) 0%, transparent 40%);
+  color: #e2e8f0;
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
+}
+
+.mono-font {
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.tech-font {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/*==============================
+アナログ時計
+==============================*/
+
+.clock-outer {
+  position: relative;
+  width: min(380px, 78vw);
+  height: min(380px, 78vw);
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1a233a 0%, #0d1322 100%);
+  border: 2px solid rgba(0, 242, 255, 0.3);
+  box-shadow: 
+    0 0 30px rgba(0, 242, 255, 0.15),
+    inset 0 0 25px rgba(0, 0, 0, 0.8);
+}
+
+.clock-number {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Chakra Petch', sans-serif;
+  color: #94a3b8;
+  transform: translate(-50%, -50%);
+  user-select: none;
+}
+
+.clock-number.major {
+  color: var(--accent-cyan);
+  font-size: 13px;
+  text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+}
+
+/* 針の共通指定 */
+.hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: 50% 100%;
+  border-radius: 4px;
+  transform: translateX(-50%) rotate(0deg);
+  transition: transform 0.05s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+}
+
+.hour-hand {
+  width: 6px;
+  height: 28%;
+  background: linear-gradient(to top, var(--accent-cyan), #ffffff);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  z-index: 3;
+}
+
+.minute-hand {
+  width: 4px;
+  height: 38%;
+  background: linear-gradient(to top, #94a3b8, #ffffff);
+  z-index: 4;
+}
+
+.second-hand {
+  width: 2px;
+  height: 44%;
+  background: var(--accent-red);
+  box-shadow: 0 0 8px rgba(255, 51, 102, 0.8);
+  z-index: 5;
+}
+
+.center-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--accent-red);
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.8);
+  border: 2px solid #ffffff;
+  z-index: 6;
+}
+
+/* トラック・目盛り */
+.tick-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  transform-origin: 50% 0%;
+}
+
+.tick-mark.major {
+  height: 10px;
+  width: 2px;
+  background: var(--accent-cyan);
+}
+
+.glow-text {
+  text-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
+}
+
+</style>
+</head>
+
+<body class="p-4 md:p-8">
+
+<div class="container max-w-xl mx-auto text-center">
+
+  <!-- ヘッダー -->
+  <header class="mb-6">
+    <div class="inline-block px-3 py-1 mb-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs tracking-widest tech-font">
+      EAST CALENDAR SYSTEM
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold tracking-wider text-white glow-text mb-1 tech-font">
+      東暦標準時
+    </h1>
+    <p class="subtitle text-slate-400 text-xs md:text-sm tracking-widest uppercase mono-font">
+      East Calendar Standard Time (WST)
+    </p>
+  </header>
+
+  <!-- メイン時計カード -->
+  <main class="glass-panel rounded-3xl p-6 md:p-8 mb-6 relative overflow-hidden">
+    
+    <!-- 装飾グリッド線 -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
+
+    <!--=========================
+    アナログ時計エリア
+    ==========================-->
+    <div id="analogArea" class="mb-6 transition-all duration-300">
+      <div id="analog" class="clock-outer">
+        <div id="hourHand" class="hand hour-hand"></div>
+        <div id="minuteHand" class="hand minute-hand"></div>
+        <div id="secondHand" class="hand second-hand"></div>
+        <div class="center-dot"></div>
+      </div>
+    </div>
+
+    <!--=========================
+    デジタル時計エリア
+    ==========================-->
+    <div id="digitalArea" class="mb-4">
+      <div id="digital" class="digital mono-font text-4xl md:text-6xl font-bold text-cyan-400 tracking-wider glow-text my-2">
+        00:000:000
+      </div>
+    </div>
+
+    <!-- 日付表示 -->
+    <div id="date" class="date text-lg md:text-xl text-slate-200 font-medium mb-3">
+      東暦2045年 1月 1日
+    </div>
+
+    <!-- 架空時間システムの注記ラベル -->
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-800/80 text-xs text-slate-400 mono-font">
+      <span>1日=29時</span>
+      <span class="text-slate-600">•</span>
+      <span>1時=145分</span>
+      <span class="text-slate-600">•</span>
+      <span>1分=145秒</span>
+    </div>
+
+  </main>
+
+  <!--=========================
+  コントロールパネル
+  ==========================-->
+  <div class="glass-panel rounded-2xl p-5 mb-6 text-left space-y-4">
+    
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <label for="timezone" class="text-sm font-medium text-slate-300 flex items-center gap-2">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        標準時帯 (WST)
+      </label>
+
+      <select id="timezone" class="bg-slate-900/90 border border-slate-700 text-cyan-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-cyan-400 transition-colors cursor-pointer">
+        <option value="0">和音陣国 — WST±0</option>
+        <option value="-2">日本 (JST領域) — WST-2</option>
+        <option value="-4">WST-4</option>
+        <option value="-3">WST-3</option>
+        <option value="-1">WST-1</option>
+        <option value="1">WST+1</option>
+        <option value="2">WST+2</option>
+        <option value="3">WST+3</option>
+        <option value="4">WST+4</option>
+        <option value="5">WST+5</option>
+      </select>
+    </div>
+
+    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+      <span class="text-sm text-slate-400">表示モード</span>
+      <div class="flex bg-slate-900/80 p-1 rounded-xl border border-slate-800" id="viewModeSelector">
+        <button data-mode="both" class="mode-btn px-3 py-1 text-xs rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">両方</button>
+        <button data-mode="analog" class="mode-btn px-3 py-1 text-xs text-slate-400 hover:text-slate-200 transition-all">アナログ</button>
+        <button data-mode="digital" class="mode-btn px-3 py-1 text-xs text-slate-400 hover:text-slate-200 transition-all">デジタル</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!--=========================
+  時差情報カード
+  ==========================-->
+  <div id="timezoneInfo" class="glass-panel rounded-2xl p-4 text-xs md:text-sm text-slate-400 leading-relaxed text-left grid grid-cols-1 md:grid-cols-3 gap-2">
+    <!-- JSで情報が挿入されます -->
+  </div>
+
+</div>
+
+<script>
+
+/*============================================================
+東暦設定定数
+============================================================*/
+
+// 基準となる現実（JST）の日時：2026-04-19T00:00:00+09:00 = 東暦2045年1月1日00:00:00
+const BASE_JST = new Date("2026-04-19T00:00:00+09:00");
+const BASE_YEAR = 2045;
+
+// 東暦の時間構造 (29時間 / 145分 / 145秒)
+const EAST_HOURS = 29;
+const EAST_MINUTES = 145;
+const EAST_SECONDS = 145;
+
+// 1東暦日の総東暦秒 (29 * 145 * 145 = 609,725秒)
+const EAST_SECONDS_PER_DAY = EAST_HOURS * EAST_MINUTES * EAST_SECONDS;
+
+// 東暦1日が現実時間で進む秒数 (25時間31分2秒 = 91,862現実秒)
+const REAL_SECONDS_PER_EAST_DAY = (25 * 3600) + (31 * 60) + 2;
+
+// 東暦1時間に対応する経度
+const LONGITUDE_PER_HOUR = 360 / EAST_HOURS;
+
+
+/*============================================================
+暦関数（月ごとの日数・年間の総日数）
+============================================================*/
+
+function daysInMonth(month) {
+  // 6月のみ34日、それ以外の月（1〜15月）は35日
+  if (month === 6) {
+    return 34;
+  }
+  return 35;
+}
+
+function daysInYear() {
+  let total = 0;
+  for (let month = 1; month <= 15; month++) {
+    total += daysInMonth(month);
+  }
+  return total; // 35*14 + 34 = 524日/年
+}
+
+
+/*============================================================
+東暦日時を算出するメイン計算
+============================================================*/
+
+function getEastDate(now, timezoneOffset) {
+
+  // 現実の経過秒数（基準日からの差分）
+  const realElapsedSeconds = (now.getTime() - BASE_JST.getTime()) / 1000;
+
+  // 現実秒 → 東暦秒 へのスケール変換
+  const eastElapsedSeconds = realElapsedSeconds * (EAST_SECONDS_PER_DAY / REAL_SECONDS_PER_EAST_DAY);
+
+  // 通算東暦日数と、当日内の東暦秒
+  let totalDays = Math.floor(eastElapsedSeconds / EAST_SECONDS_PER_DAY);
+  let remainingSeconds = eastElapsedSeconds - (totalDays * EAST_SECONDS_PER_DAY);
+
+  if (remainingSeconds < 0) {
+    remainingSeconds += EAST_SECONDS_PER_DAY;
+    totalDays -= 1;
+  }
+
+  // 年の算出
+  let year = BASE_YEAR;
+  const daysPerYear = daysInYear();
+
+  while (totalDays >= daysPerYear) {
+    totalDays -= daysPerYear;
+    year++;
+  }
+  while (totalDays < 0) {
+    totalDays += daysPerYear;
+    year--;
+  }
+
+  // 月の算出
+  let month = 1;
+  while (totalDays >= daysInMonth(month)) {
+    totalDays -= daysInMonth(month);
+    month++;
+  }
+
+  // 日の算出 (1始まり)
+  let day = Math.floor(totalDays) + 1;
+
+  // 時・分・秒の算出
+  const secondsPerHour = EAST_MINUTES * EAST_SECONDS;
+  
+  let hour = Math.floor(remainingSeconds / secondsPerHour);
+  remainingSeconds -= hour * secondsPerHour;
+
+  const minute = Math.floor(remainingSeconds / EAST_SECONDS);
+  const second = Math.floor(remainingSeconds % EAST_SECONDS);
+  const secondFraction = remainingSeconds - Math.floor(remainingSeconds);
+
+  /*========================================================
+  WST（標準時帯オフセット）の適用
+  ========================================================*/
+  hour += timezoneOffset;
+
+  // 0～28時間の範囲内に循環・日付跨ぎの補正
+  if (hour < 0) {
+    hour += EAST_HOURS;
+    day--;
+    if (day < 1) {
+      month--;
+      if (month < 1) {
+        month = 15;
+        year--;
+      }
+      day = daysInMonth(month);
+    }
+  } else if (hour >= EAST_HOURS) {
+    hour -= EAST_HOURS;
+    day++;
+    if (day > daysInMonth(month)) {
+      day = 1;
+      month++;
+      if (month > 15) {
+        month = 1;
+        year++;
+      }
+    }
+  }
+
+  return {
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    secondFraction
+  };
+}
+
+
+/*============================================================
+アナログ時計の盤面構築（29等分の目盛りと数字）
+============================================================*/
+
+const clock = document.getElementById("analog");
+
+// 29時間の目盛りと数字を動的生成
+for (let i = 0; i < EAST_HOURS; i++) {
+  const angle = (i * 360) / EAST_HOURS;
+  const angleRad = (angle * Math.PI) / 180;
+
+  // 目盛りの作成
+  const tick = document.createElement("div");
+  tick.className = `tick-mark ${i % 5 === 0 ? 'major' : ''}`;
+  tick.style.transform = `translate(-50%, -100%) rotate(${angle}deg) translateY(-${clock.clientWidth / 2 - 12}px)`;
+  clock.appendChild(tick);
+
+  // 数字の作成
+  const number = document.createElement("div");
+  number.className = `clock-number ${i % 5 === 0 ? 'major' : ''}`;
+  
+  // 半径の位置計算 (パーセンテージ)
+  const radius = 40; 
+  const x = 50 + radius * Math.sin(angleRad);
+  const y = 50 - radius * Math.cos(angleRad);
+
+  number.style.left = `${x}%`;
+  number.style.top = `${y}%`;
+  number.textContent = i;
+
+  clock.appendChild(number);
+}
+
+
+/*============================================================
+時計表示の更新関数
+============================================================*/
+
+function updateClock() {
+  const now = new Date();
+  const timezone = Number(document.getElementById("timezone").value);
+  const east = getEastDate(now, timezone);
+
+  // デジタル時計（145分/145秒に対応して3桁表示）
+  const formattedHour = String(east.hour).padStart(2, "0");
+  const formattedMinute = String(east.minute).padStart(3, "0");
+  const formattedSecond = String(east.second).padStart(3, "0");
+
+  document.getElementById("digital").textContent = 
+    `${formattedHour}:${formattedMinute}:${formattedSecond}`;
+
+  // 日付表記
+  document.getElementById("date").textContent = 
+    `東暦${east.year}年 ${east.month}月 ${east.day}日`;
+
+  // アナログ時計の各針の角度計算
+  const hourAngle = (east.hour + east.minute / EAST_MINUTES + east.second / (EAST_MINUTES * EAST_SECONDS)) * (360 / EAST_HOURS);
+  const minuteAngle = (east.minute + east.second / EAST_SECONDS) * (360 / EAST_MINUTES);
+  const secondAngle = (east.second + east.secondFraction) * (360 / EAST_SECONDS);
+
+  document.getElementById("hourHand").style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+  document.getElementById("minuteHand").style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
+  document.getElementById("secondHand").style.transform = `translateX(-50%) rotate(${secondAngle}deg)`;
+
+  // 時差・経度情報のアップデート
+  const longitude = timezone * LONGITUDE_PER_HOUR;
+  const japanDifference = timezone + 2; // 日本はWST-2基準
+
+  document.getElementById("timezoneInfo").innerHTML = `
+    <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div class="text-slate-500 text-xs">現在タイムゾーン</div>
+      <div class="text-cyan-300 font-semibold tech-font mt-0.5">WST ${timezone >= 0 ? "+" : ""}${timezone}</div>
+    </div>
+    <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div class="text-slate-500 text-xs">日本(JST)との差</div>
+      <div class="text-slate-200 font-semibold tech-font mt-0.5">${japanDifference >= 0 ? "+" : ""}${japanDifference} 時間</div>
+    </div>
+    <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div class="text-slate-500 text-xs">基準子午線経度差</div>
+      <div class="text-slate-200 font-semibold tech-font mt-0.5">${longitude >= 0 ? "+" : ""}${longitude.toFixed(2)}°</div>
+    </div>
+  `;
+}
+
+
+/*============================================================
+表示モードの切替イベント設定
+============================================================*/
+
+const analogArea = document.getElementById("analogArea");
+const digitalArea = document.getElementById("digitalArea");
+const modeButtons = document.querySelectorAll("#viewModeSelector button");
+
+modeButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const mode = btn.getAttribute("data-mode");
+
+    // ボタンの見た目更新
+    modeButtons.forEach(b => {
+      b.className = "mode-btn px-3 py-1 text-xs text-slate-400 hover:text-slate-200 transition-all";
+    });
+    btn.className = "mode-btn px-3 py-1 text-xs rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+
+    // 表示切り替え
+    if (mode === "both") {
+      analogArea.classList.remove("hidden");
+      digitalArea.classList.remove("hidden");
+    } else if (mode === "analog") {
+      analogArea.classList.remove("hidden");
+      digitalArea.classList.add("hidden");
+    } else if (mode === "digital") {
+      analogArea.classList.add("hidden");
+      digitalArea.classList.remove("hidden");
+    }
+  });
+});
+
+// 時差変更時の即時更新
+document.getElementById("timezone").addEventListener("change", updateClock);
+
+
+/*============================================================
+アニメーションループの実行
+============================================================*/
+
+function loop() {
+  updateClock();
+  requestAnimationFrame(loop);
+}
+
+// 起動開始
+loop();
+
+</script>
+</body>
+</html>
