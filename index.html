@@ -349,10 +349,11 @@ let viewCalendarMonth = 1;
 ============================================================*/
 
 function daysInMonth(month) {
-  // 6月のみ34日、それ以外の月（1〜15月）は35日
-  if (month === 6) {
-    return 34;
-  }
+  // 1月: 31日, 3月: 33日, 6月: 34日, 10月: 19日, その他: 35日
+  if (month === 1) return 31;
+  if (month === 3) return 33;
+  if (month === 6) return 34;
+  if (month === 10) return 19;
   return 35;
 }
 
@@ -361,7 +362,7 @@ function daysInYear() {
   for (let month = 1; month <= 15; month++) {
     total += daysInMonth(month);
   }
-  return total; // 35*14 + 34 = 524日/年
+  return total;
 }
 
 // 2045年1月1日からの累計東暦日数を計算
