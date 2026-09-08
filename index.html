@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東暦標準時時計 (East Calendar Standard Time)</title>
+<title>東暦標準時時計 & カレンダー</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,13 +11,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
-
 :root {
   --bg-dark: #0b0f19;
   --panel-bg: rgba(22, 30, 46, 0.7);
   --accent-cyan: #00f2ff;
   --accent-gold: #ffb703;
   --accent-red: #ff3366;
+  --accent-purple: #a855f7;
 }
 
 body {
@@ -29,7 +29,7 @@ body {
   background-color: var(--bg-dark);
   background-image: 
     radial-gradient(circle at 50% 20%, rgba(0, 242, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 51, 102, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 40%);
   color: #e2e8f0;
   font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
@@ -57,8 +57,8 @@ body {
 
 .clock-outer {
   position: relative;
-  width: min(380px, 78vw);
-  height: min(380px, 78vw);
+  width: min(340px, 72vw);
+  height: min(340px, 72vw);
   margin: 0 auto;
   border-radius: 50%;
   background: radial-gradient(circle, #1a233a 0%, #0d1322 100%);
@@ -70,12 +70,12 @@ body {
 
 .clock-number {
   position: absolute;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   font-family: 'Chakra Petch', sans-serif;
   color: #94a3b8;
@@ -85,11 +85,11 @@ body {
 
 .clock-number.major {
   color: var(--accent-cyan);
-  font-size: 13px;
+  font-size: 12px;
   text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
 }
 
-/* 針の共通指定 */
+/* 針の指定 */
 .hand {
   position: absolute;
   left: 50%;
@@ -137,7 +137,6 @@ body {
   z-index: 6;
 }
 
-/* トラック・目盛り */
 .tick-mark {
   position: absolute;
   left: 50%;
@@ -158,12 +157,36 @@ body {
   text-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
 }
 
+/* カレンダーセル */
+.cal-day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.4);
+  transition: all 0.2s ease;
+}
+
+.cal-day-cell.today {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 242, 255, 0.15);
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.3);
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.cal-day-cell.other-month {
+  opacity: 0.25;
+}
 </style>
 </head>
 
 <body class="p-4 md:p-8">
 
-<div class="container max-w-xl mx-auto text-center">
+<div class="container max-w-2xl mx-auto text-center">
 
   <!-- ヘッダー -->
   <header class="mb-6">
@@ -174,19 +197,15 @@ body {
       東暦標準時
     </h1>
     <p class="subtitle text-slate-400 text-xs md:text-sm tracking-widest uppercase mono-font">
-      East Calendar Standard Time (WST)
+      East Calendar Standard Time & Chronos
     </p>
   </header>
 
   <!-- メイン時計カード -->
   <main class="glass-panel rounded-3xl p-6 md:p-8 mb-6 relative overflow-hidden">
-    
-    <!-- 装飾グリッド線 -->
     <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
 
-    <!--=========================
-    アナログ時計エリア
-    ==========================-->
+    <!-- アナログ時計エリア -->
     <div id="analogArea" class="mb-6 transition-all duration-300">
       <div id="analog" class="clock-outer">
         <div id="hourHand" class="hand hour-hand"></div>
@@ -196,36 +215,68 @@ body {
       </div>
     </div>
 
-    <!--=========================
-    デジタル時計エリア
-    ==========================-->
-    <div id="digitalArea" class="mb-4">
+    <!-- デジタル時計エリア -->
+    <div id="digitalArea" class="mb-2">
       <div id="digital" class="digital mono-font text-4xl md:text-6xl font-bold text-cyan-400 tracking-wider glow-text my-2">
         00:000:000
       </div>
     </div>
 
-    <!-- 日付表示 -->
-    <div id="date" class="date text-lg md:text-xl text-slate-200 font-medium mb-3">
-      東暦2045年 1月 1日
+    <!-- 日付・曜日表示 -->
+    <div class="flex items-center justify-center gap-3 mb-3">
+      <div id="date" class="date text-lg md:text-2xl text-slate-100 font-semibold">
+        東暦2045年 1月 1日
+      </div>
+      <span id="dayOfWeek" class="px-3 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40 text-base">
+        (天)
+      </span>
     </div>
 
-    <!-- 架空時間システムの注記ラベル -->
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-800/80 text-xs text-slate-400 mono-font">
+    <!-- 補足情報 -->
+    <div class="inline-flex flex-wrap justify-center items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 text-xs text-slate-400 mono-font">
       <span>1日=29時</span>
       <span class="text-slate-600">•</span>
       <span>1時=145分</span>
       <span class="text-slate-600">•</span>
       <span>1分=145秒</span>
+      <span class="text-slate-600">•</span>
+      <span>1週=7日(天知人和駿律水)</span>
     </div>
-
   </main>
 
-  <!--=========================
-  コントロールパネル
-  ==========================-->
+  <!-- カレンダーカード -->
+  <section class="glass-panel rounded-3xl p-5 md:p-7 mb-6 text-left">
+    <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span id="calendarTitle" class="text-lg md:text-xl font-bold text-slate-100 tech-font">東暦2045年 1月</span>
+      </div>
+      <div class="flex gap-2">
+        <button id="prevMonthBtn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors border border-slate-700">◀ 前月</button>
+        <button id="todayBtn" class="px-3 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg text-xs transition-colors border border-cyan-500/40">今月</button>
+        <button id="nextMonthBtn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition-colors border border-slate-700">次月 ▶</button>
+      </div>
+    </div>
+
+    <!-- 7曜日ヘッダー (天 知 人 和 駿 律 水) -->
+    <div class="grid grid-cols-7 gap-1.5 text-center mb-2">
+      <div class="py-1 text-xs font-bold text-cyan-400 bg-cyan-950/40 rounded-md">天</div>
+      <div class="py-1 text-xs font-bold text-slate-300 bg-slate-800/40 rounded-md">知</div>
+      <div class="py-1 text-xs font-bold text-slate-300 bg-slate-800/40 rounded-md">人</div>
+      <div class="py-1 text-xs font-bold text-slate-300 bg-slate-800/40 rounded-md">和</div>
+      <div class="py-1 text-xs font-bold text-slate-300 bg-slate-800/40 rounded-md">駿</div>
+      <div class="py-1 text-xs font-bold text-slate-300 bg-slate-800/40 rounded-md">律</div>
+      <div class="py-1 text-xs font-bold text-blue-400 bg-blue-950/40 rounded-md">水</div>
+    </div>
+
+    <!-- カレンダーグリッド -->
+    <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 text-center text-xs md:text-sm mono-font">
+      <!-- Dynamic days render here -->
+    </div>
+  </section>
+
+  <!-- コントロールパネル -->
   <div class="glass-panel rounded-2xl p-5 mb-6 text-left space-y-4">
-    
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       <label for="timezone" class="text-sm font-medium text-slate-300 flex items-center gap-2">
         <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -254,25 +305,20 @@ body {
         <button data-mode="digital" class="mode-btn px-3 py-1 text-xs text-slate-400 hover:text-slate-200 transition-all">デジタル</button>
       </div>
     </div>
-
   </div>
 
-  <!--=========================
-  時差情報カード
-  ==========================-->
+  <!-- 時差情報 -->
   <div id="timezoneInfo" class="glass-panel rounded-2xl p-4 text-xs md:text-sm text-slate-400 leading-relaxed text-left grid grid-cols-1 md:grid-cols-3 gap-2">
-    <!-- JSで情報が挿入されます -->
   </div>
 
 </div>
 
 <script>
-
 /*============================================================
 東暦設定定数
 ============================================================*/
 
-// 基準となる現実（JST）の日時：2026-04-19T00:00:00+09:00 = 東暦2045年1月1日00:00:00
+// 基準となる現実（JST）の日時：2026-04-19T13:00:00+09:00 = 東暦2045年1月1日 00:00:00 (天曜日)
 const BASE_JST = new Date("2026-04-19T13:00:00+09:00");
 const BASE_YEAR = 2045;
 
@@ -280,6 +326,9 @@ const BASE_YEAR = 2045;
 const EAST_HOURS = 29;
 const EAST_MINUTES = 145;
 const EAST_SECONDS = 145;
+
+// 曜日の定義 (1週間は7日: 天 -> 知 -> 人 -> 和 -> 駿 -> 律 -> 水)
+const DAYS_OF_WEEK = ["天", "知", "人", "和", "駿", "律", "水"];
 
 // 1東暦日の総東暦秒 (29 * 145 * 145 = 609,725秒)
 const EAST_SECONDS_PER_DAY = EAST_HOURS * EAST_MINUTES * EAST_SECONDS;
@@ -290,9 +339,13 @@ const REAL_SECONDS_PER_EAST_DAY = (25 * 3600) + (31 * 60) + 2;
 // 東暦1時間に対応する経度
 const LONGITUDE_PER_HOUR = 360 / EAST_HOURS;
 
+// カレンダーの現在表示年月
+let viewCalendarYear = BASE_YEAR;
+let viewCalendarMonth = 1;
+
 
 /*============================================================
-暦関数（月ごとの日数・年間の総日数）
+暦関数
 ============================================================*/
 
 function daysInMonth(month) {
@@ -311,20 +364,31 @@ function daysInYear() {
   return total; // 35*14 + 34 = 524日/年
 }
 
+// 2045年1月1日からの累計東暦日数を計算
+function getEastTotalDays(year, month, day) {
+  let total = (year - BASE_YEAR) * daysInYear();
+  for (let m = 1; m < month; m++) {
+    total += daysInMonth(m);
+  }
+  total += (day - 1);
+  return total;
+}
+
+// 特定の年月日の曜日インデックスを取得 (0:天, 1:知, ..., 6:水)
+function getEastDayOfWeekIndex(year, month, day) {
+  const totalDays = getEastTotalDays(year, month, day);
+  return ((totalDays % 7) + 7) % 7;
+}
+
 
 /*============================================================
-東暦日時を算出するメイン計算
+東暦日時計算関数
 ============================================================*/
 
 function getEastDate(now, timezoneOffset) {
-
-  // 現実の経過秒数（基準日からの差分）
   const realElapsedSeconds = (now.getTime() - BASE_JST.getTime()) / 1000;
-
-  // 現実秒 → 東暦秒 へのスケール変換
   const eastElapsedSeconds = realElapsedSeconds * (EAST_SECONDS_PER_DAY / REAL_SECONDS_PER_EAST_DAY);
 
-  // 通算東暦日数と、当日内の東暦秒
   let totalDays = Math.floor(eastElapsedSeconds / EAST_SECONDS_PER_DAY);
   let remainingSeconds = eastElapsedSeconds - (totalDays * EAST_SECONDS_PER_DAY);
 
@@ -333,7 +397,6 @@ function getEastDate(now, timezoneOffset) {
     totalDays -= 1;
   }
 
-  // 年の算出
   let year = BASE_YEAR;
   const daysPerYear = daysInYear();
 
@@ -346,19 +409,15 @@ function getEastDate(now, timezoneOffset) {
     year--;
   }
 
-  // 月の算出
   let month = 1;
   while (totalDays >= daysInMonth(month)) {
     totalDays -= daysInMonth(month);
     month++;
   }
 
-  // 日の算出 (1始まり)
   let day = Math.floor(totalDays) + 1;
 
-  // 時・分・秒の算出
   const secondsPerHour = EAST_MINUTES * EAST_SECONDS;
-  
   let hour = Math.floor(remainingSeconds / secondsPerHour);
   remainingSeconds -= hour * secondsPerHour;
 
@@ -366,12 +425,9 @@ function getEastDate(now, timezoneOffset) {
   const second = Math.floor(remainingSeconds % EAST_SECONDS);
   const secondFraction = remainingSeconds - Math.floor(remainingSeconds);
 
-  /*========================================================
-  WST（標準時帯オフセット）の適用
-  ========================================================*/
+  // タイムゾーン適用
   hour += timezoneOffset;
 
-  // 0～28時間の範囲内に循環・日付跨ぎの補正
   if (hour < 0) {
     hour += EAST_HOURS;
     day--;
@@ -396,6 +452,8 @@ function getEastDate(now, timezoneOffset) {
     }
   }
 
+  const dayOfWeekIndex = getEastDayOfWeekIndex(year, month, day);
+
   return {
     year,
     month,
@@ -403,33 +461,31 @@ function getEastDate(now, timezoneOffset) {
     hour,
     minute,
     second,
-    secondFraction
+    secondFraction,
+    dayOfWeekIndex,
+    dayOfWeekName: DAYS_OF_WEEK[dayOfWeekIndex]
   };
 }
 
 
 /*============================================================
-アナログ時計の盤面構築（29等分の目盛りと数字）
+アナログ時計の盤面初期化
 ============================================================*/
 
 const clock = document.getElementById("analog");
 
-// 29時間の目盛りと数字を動的生成
 for (let i = 0; i < EAST_HOURS; i++) {
   const angle = (i * 360) / EAST_HOURS;
   const angleRad = (angle * Math.PI) / 180;
 
-  // 目盛りの作成
   const tick = document.createElement("div");
   tick.className = `tick-mark ${i % 5 === 0 ? 'major' : ''}`;
   tick.style.transform = `translate(-50%, -100%) rotate(${angle}deg) translateY(-${clock.clientWidth / 2 - 12}px)`;
   clock.appendChild(tick);
 
-  // 数字の作成
   const number = document.createElement("div");
   number.className = `clock-number ${i % 5 === 0 ? 'major' : ''}`;
   
-  // 半径の位置計算 (パーセンテージ)
   const radius = 40; 
   const x = 50 + radius * Math.sin(angleRad);
   const y = 50 - radius * Math.cos(angleRad);
@@ -443,7 +499,51 @@ for (let i = 0; i < EAST_HOURS; i++) {
 
 
 /*============================================================
-時計表示の更新関数
+カレンダー描画
+============================================================*/
+
+function renderCalendar(currentEastDate) {
+  const grid = document.getElementById("calendarGrid");
+  grid.innerHTML = "";
+
+  document.getElementById("calendarTitle").textContent = `東暦${viewCalendarYear}年 ${viewCalendarMonth}月`;
+
+  // 1日の曜日を取得
+  const firstDayIndex = getEastDayOfWeekIndex(viewCalendarYear, viewCalendarMonth, 1);
+  const totalDays = daysInMonth(viewCalendarMonth);
+
+  // 1日より前の空欄埋め
+  for (let i = 0; i < firstDayIndex; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "cal-day-cell opacity-0 pointer-events-none";
+    grid.appendChild(emptyCell);
+  }
+
+  // 月の日数をレンダリング
+  for (let day = 1; day <= totalDays; day++) {
+    const dayCell = document.createElement("div");
+    const dayOfWeekIdx = (firstDayIndex + (day - 1)) % 7;
+    
+    let isToday = (
+      currentEastDate.year === viewCalendarYear &&
+      currentEastDate.month === viewCalendarMonth &&
+      currentEastDate.day === day
+    );
+
+    dayCell.className = `cal-day-cell p-2 ${isToday ? 'today' : 'hover:bg-slate-800/60'}`;
+
+    const numSpan = document.createElement("span");
+    numSpan.className = "text-sm font-semibold";
+    numSpan.textContent = day;
+
+    dayCell.appendChild(numSpan);
+    grid.appendChild(dayCell);
+  }
+}
+
+
+/*============================================================
+時計表示更新
 ============================================================*/
 
 function updateClock() {
@@ -451,7 +551,7 @@ function updateClock() {
   const timezone = Number(document.getElementById("timezone").value);
   const east = getEastDate(now, timezone);
 
-  // デジタル時計（145分/145秒に対応して3桁表示）
+  // デジタル時計
   const formattedHour = String(east.hour).padStart(2, "0");
   const formattedMinute = String(east.minute).padStart(3, "0");
   const formattedSecond = String(east.second).padStart(3, "0");
@@ -459,11 +559,12 @@ function updateClock() {
   document.getElementById("digital").textContent = 
     `${formattedHour}:${formattedMinute}:${formattedSecond}`;
 
-  // 日付表記
+  // 日付・曜日表記
   document.getElementById("date").textContent = 
     `東暦${east.year}年 ${east.month}月 ${east.day}日`;
+  document.getElementById("dayOfWeek").textContent = `(${east.dayOfWeekName})`;
 
-  // アナログ時計の各針の角度計算
+  // アナログ時計の針
   const hourAngle = (east.hour + east.minute / EAST_MINUTES + east.second / (EAST_MINUTES * EAST_SECONDS)) * (360 / EAST_HOURS);
   const minuteAngle = (east.minute + east.second / EAST_SECONDS) * (360 / EAST_MINUTES);
   const secondAngle = (east.second + east.secondFraction) * (360 / EAST_SECONDS);
@@ -472,9 +573,9 @@ function updateClock() {
   document.getElementById("minuteHand").style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
   document.getElementById("secondHand").style.transform = `translateX(-50%) rotate(${secondAngle}deg)`;
 
-  // 時差・経度情報のアップデート
+  // 時差情報
   const longitude = timezone * LONGITUDE_PER_HOUR;
-  const japanDifference = timezone + 2; // 日本はWST-2基準
+  const japanDifference = timezone + 2;
 
   document.getElementById("timezoneInfo").innerHTML = `
     <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
@@ -490,13 +591,41 @@ function updateClock() {
       <div class="text-slate-200 font-semibold tech-font mt-0.5">${longitude >= 0 ? "+" : ""}${longitude.toFixed(2)}°</div>
     </div>
   `;
+
+  renderCalendar(east);
 }
 
 
 /*============================================================
-表示モードの切替イベント設定
+イベントリスナー設定
 ============================================================*/
 
+// カレンダーナビゲーション
+document.getElementById("prevMonthBtn").addEventListener("click", () => {
+  viewCalendarMonth--;
+  if (viewCalendarMonth < 1) {
+    viewCalendarMonth = 15;
+    viewCalendarYear--;
+  }
+});
+
+document.getElementById("nextMonthBtn").addEventListener("click", () => {
+  viewCalendarMonth++;
+  if (viewCalendarMonth > 15) {
+    viewCalendarMonth = 1;
+    viewCalendarYear++;
+  }
+});
+
+document.getElementById("todayBtn").addEventListener("click", () => {
+  const now = new Date();
+  const timezone = Number(document.getElementById("timezone").value);
+  const east = getEastDate(now, timezone);
+  viewCalendarYear = east.year;
+  viewCalendarMonth = east.month;
+});
+
+// 表示モード切替
 const analogArea = document.getElementById("analogArea");
 const digitalArea = document.getElementById("digitalArea");
 const modeButtons = document.querySelectorAll("#viewModeSelector button");
@@ -505,13 +634,11 @@ modeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     const mode = btn.getAttribute("data-mode");
 
-    // ボタンの見た目更新
     modeButtons.forEach(b => {
       b.className = "mode-btn px-3 py-1 text-xs text-slate-400 hover:text-slate-200 transition-all";
     });
     btn.className = "mode-btn px-3 py-1 text-xs rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
 
-    // 表示切り替え
     if (mode === "both") {
       analogArea.classList.remove("hidden");
       digitalArea.classList.remove("hidden");
@@ -525,12 +652,11 @@ modeButtons.forEach(btn => {
   });
 });
 
-// 時差変更時の即時更新
 document.getElementById("timezone").addEventListener("change", updateClock);
 
 
 /*============================================================
-アニメーションループの実行
+メインアニメーションループ
 ============================================================*/
 
 function loop() {
@@ -538,9 +664,13 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-// 起動開始
-loop();
+// 初期化表示処理
+const initEast = getEastDate(new Date(), Number(document.getElementById("timezone").value));
+viewCalendarYear = initEast.year;
+viewCalendarMonth = initEast.month;
 
+loop();
 </script>
+
 </body>
 </html>
